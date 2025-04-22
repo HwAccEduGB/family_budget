@@ -6,28 +6,44 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 @Service
 public class AccountService {
     @Autowired
     private AccountRepository accountRepository;
 
-    public Account getAccount() {
-        // Предположим, что у нас один счет, получим его или создадим при необходимости
-        return accountRepository.findById(1L).orElseGet(() -> {
-            Account newAccount = new Account();
-            newAccount.setBalance(0.0);
-            return accountRepository.save(newAccount);
-        });
+    @Transactional
+    public BigDecimal getBalance() {
+        Account account = getAccount();
+        return account.getBalance();
     }
 
     @Transactional
-    public void updateBalance(Double amount) {
+    public synchronized void addFunds(BigDecimal amount) {
         Account account = getAccount();
-        Double newBalance = account.getBalance() + amount;
-        if (newBalance < 0) {
-            throw new RuntimeException("Недостаточно средств");
-        }
+        BigDecimal newBalance = account.getBalance().add(amount);
         account.setBalance(newBalance);
         accountRepository.save(account);
+    }
+
+    @Transactional
+    public synchronized boolean withdrawFunds(BigDecimal amount) {
+        Account account = getAccount();
+        if (account.getBalance().compareTo(amount) >= 0) {
+            account.setBalance(account.getBalance().subtract(amount));
+            accountRepository.save(account);
+            return true;
+        }
+        return false;
+    }
+
+    private Account getAccount() {
+        return accountRepository.findById(1L).orElseGet(() -> {
+            Account newAccount = new Account();
+            newAccount.setBalance(BigDecimal.ZERO);
+            newAccount.setId(1L);
+            return accountRepository.save(newAccount);
+        });
     }
 }

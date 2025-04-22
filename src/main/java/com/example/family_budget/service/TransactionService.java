@@ -1,15 +1,16 @@
 package com.example.family_budget.service;
 
 import com.example.family_budget.entity.Account;
-import com.example.family_budget.entity.Client;
+import com.example.family_budget.entity.User;
 import com.example.family_budget.entity.Transaction;
 import com.example.family_budget.repository.AccountRepository;
-import com.example.family_budget.repository.ClientRepository;
+import com.example.family_budget.repository.UserRepository;
 import com.example.family_budget.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,46 +20,43 @@ public class TransactionService {
     private TransactionRepository transactionRepository;
 
     @Autowired
-    private AccountRepository accountRepository;
+    private UserRepository userRepository;
 
     @Autowired
-    private ClientRepository clientRepository;
-
-    public List<Transaction> getAllTransactions() {
-        return transactionRepository.findAll();
-    }
+    private AccountService accountService;
 
     @Transactional
-    public void addTransaction(Long clientId, Double amount) {
-        Account account = getAccount();
-        Client client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new RuntimeException("Клиент не найден"));
+    public Transaction addTransaction(String userName, BigDecimal amount, String type, String description) {
+        User user = userRepository.findByName(userName).orElseGet(() -> {
+            User newUser = new User();
+            newUser.setName(userName);
+            return userRepository.save(newUser);
+        });
 
-        Double newBalance = account.getBalance() + amount;
-        if (newBalance < 0) {
+        boolean success = true;
+        if ("withdrawal".equalsIgnoreCase(type)) {
+            success = accountService.withdrawFunds(amount);
+        } else if ("deposit".equalsIgnoreCase(type)) {
+            accountService.addFunds(amount);
+        }
+
+        if (!success && "withdrawal".equalsIgnoreCase(type)) {
             throw new RuntimeException("Недостаточно средств");
         }
 
-        // Обновляем баланс
-        account.setBalance(newBalance);
-        accountRepository.save(account);
-
-        // Создаем транзакцию
         Transaction transaction = new Transaction();
-        transaction.setAccount(account);
-        transaction.setClient(client);
+        transaction.setUser(user);
         transaction.setAmount(amount);
-        transaction.setTimestamp(LocalDateTime.now());
+        transaction.setType(type);
+        transaction.setDate(LocalDateTime.now());
+        transaction.setDescription(description);
 
-        transactionRepository.save(transaction);
+        return transactionRepository.save(transaction);
     }
 
-    // Метод для получения текущего счета
-    private Account getAccount() {
-        return accountRepository.findById(1L).orElseGet(() -> {
-            Account newAccount = new Account();
-            newAccount.setBalance(0.0);
-            return accountRepository.save(newAccount);
-        });
+    public List<Transaction> getUserTransactions(String userName) {
+        User user = userRepository.findByName(userName)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+        return transactionRepository.findByUser(user);
     }
 }

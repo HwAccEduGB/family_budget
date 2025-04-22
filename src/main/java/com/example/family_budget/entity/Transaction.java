@@ -4,24 +4,23 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
+@Table(name = "transactions")
 public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "account_id")
-    private Account account;
+    private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "client_id")
-    private Client client;
-
-    private Double amount;
-    private LocalDateTime timestamp = LocalDateTime.now();
+    private BigDecimal amount;
+    private String type; // "deposit" или "withdrawal"
+    private LocalDateTime date;
+    private String description;
 }
