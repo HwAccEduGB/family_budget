@@ -1,10 +1,8 @@
 package com.example.family_budget.controller;
 
 import com.example.family_budget.entity.Transaction;
-import com.example.family_budget.service.AccountService;
-import com.example.family_budget.service.TransactionService;
-import lombok.Getter;
-import lombok.Setter;
+import com.example.family_budget.service.impl.AccountServiceImpl;
+import com.example.family_budget.service.impl.TransactionServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,20 +14,20 @@ import java.util.List;
 @RequestMapping("/api")
 public class BudgetController {
     @Autowired
-    private AccountService accountService;
+    private AccountServiceImpl accountServiceImpl;
 
     @Autowired
-    private TransactionService transactionService;
+    private TransactionServiceImpl transactionServiceImpl;
 
     @GetMapping("/balance")
     public BigDecimal getBalance() {
-        return accountService.getBalance();
+        return accountServiceImpl.getBalance();
     }
 
     @PostMapping("/transaction")
     public ResponseEntity<?> addTransaction(@RequestBody TransactionRequest request) {
         try {
-            Transaction transaction = transactionService.addTransaction(
+            Transaction transaction = transactionServiceImpl.addTransaction(
                     request.getUserName(),
                     request.getAmount(),
                     request.getType(),
@@ -43,15 +41,13 @@ public class BudgetController {
 
     @GetMapping("/transactions/{userName}")
     public List<Transaction> getUserTransactions(@PathVariable String userName) {
-        return transactionService.getUserTransactions(userName);
+        return transactionServiceImpl.getUserTransactions(userName);
+    }
+
+    @GetMapping("/transactions")
+    public List<Transaction> getAllTransactions() {
+        return transactionServiceImpl.getAllTransactions();
     }
 }
 
-@Getter
-@Setter
-class TransactionRequest {
-    private String userName;
-    private BigDecimal amount;
-    private String type;
-    private String description;
-}
+
