@@ -27,7 +27,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public Transaction addTransaction(String userName, BigDecimal amount, String type, String description) {
-        User user = userRepository.findByName(userName).orElseGet(() -> {
+        User user = userRepository.findByEmail(userName).orElseGet(() -> {
             User newUser = new User();
             newUser.setName(userName);
             return userRepository.save(newUser);
@@ -56,7 +56,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public List<Transaction> getUserTransactions(String userName) {
-        User user = userRepository.findByName(userName)
+        User user = userRepository.findByEmail(userName)
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
         return transactionRepository.findByUser(user);
     }
