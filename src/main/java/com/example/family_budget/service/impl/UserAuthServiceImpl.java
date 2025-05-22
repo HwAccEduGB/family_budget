@@ -38,10 +38,8 @@ public class UserAuthServiceImpl implements UserAuthService {
             return userRepository.save(newUser);
         });
 
-        // Генерируем JWT
-        String jwtToken = JwtUtil.generateToken(user.getId());
-
         // Возвращаем ответ с токеном
-        return new ResponseModel("success", user.getId().intValue(), jwtToken);
+        return new ResponseModel("success", user.getId().intValue());
+//        return new ResponseModel("success", user.getId().intValue(), jwtToken);
     }
 }

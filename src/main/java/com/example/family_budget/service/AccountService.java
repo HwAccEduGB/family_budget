@@ -13,6 +13,4 @@ public interface AccountService {
 
     @Transactional
     boolean withdrawFunds(BigDecimal amount);
-
-
 }
