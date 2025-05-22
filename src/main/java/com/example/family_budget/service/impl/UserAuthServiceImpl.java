@@ -5,7 +5,6 @@ import com.example.family_budget.entity.User;
 import com.example.family_budget.repository.UserRepository;
 import com.example.family_budget.service.GoogleAuthService;
 import com.example.family_budget.service.UserAuthService;
-import com.example.family_budget.util.JwtUtil;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

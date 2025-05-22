@@ -58,14 +58,14 @@ public class BudgetController {
     public ResponseEntity<ResponseModel> authenticateWithGoogle(@RequestBody Map<String, String> body) {
         String idToken = body.get("token");
         if (idToken == null || idToken.isEmpty()) {
-            return ResponseEntity.badRequest().body(new ResponseModel("error", 0, null));
+            return ResponseEntity.badRequest().body(new ResponseModel("error", 0));
         }
 
         try {
             ResponseModel response = userAuthService.authenticateWithGoogle(idToken);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(new ResponseModel("error", 0, null));
+            return ResponseEntity.status(500).body(new ResponseModel("error", 0));
         }
     }
 }
