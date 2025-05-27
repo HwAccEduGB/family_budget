@@ -15,7 +15,7 @@ import java.util.Collections;
 @Service
 public class GoogleAuthServiceImpl implements  GoogleAuthService {
 
-    private static final String CLIENT_ID = "124978209029-lmloik8mu5l0k3ut52s33qhl7phamilb.apps.googleusercontent.com";
+    private static final String CLIENT_ID = "124978209029-7cnrfv061miv4ckokr5dbj22u91ov57n.apps.googleusercontent.com";
 
     public GoogleIdToken.Payload verifyToken(String idToken) throws GeneralSecurityException, IOException {
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(

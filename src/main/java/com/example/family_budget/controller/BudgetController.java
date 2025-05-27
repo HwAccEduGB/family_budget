@@ -1,7 +1,10 @@
 package com.example.family_budget.controller;
 
 import com.example.family_budget.dto.ResponseModel;
+import com.example.family_budget.dto.TransactionRequest;
 import com.example.family_budget.entity.Transaction;
+import com.example.family_budget.entity.User;
+import com.example.family_budget.repository.UserRepository;
 import com.example.family_budget.service.UserAuthService;
 import com.example.family_budget.service.impl.AccountServiceImpl;
 import com.example.family_budget.service.impl.TransactionServiceImpl;
@@ -23,25 +26,28 @@ public class BudgetController {
     private TransactionServiceImpl transactionServiceImpl;
     @Autowired
     private UserAuthService userAuthService;
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping("/balance")
-    public BigDecimal getBalance() {
+    public BigDecimal getBalance(@RequestHeader("X-User-Id") Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
         return accountServiceImpl.getBalance();
     }
 
     @PostMapping("/transaction")
-    public ResponseEntity<?> addTransaction(@RequestBody TransactionRequest request) {
-        try {
-            Transaction transaction = transactionServiceImpl.addTransaction(
-                    request.getUserName(),
-                    request.getAmount(),
-                    request.getType(),
-                    request.getDescription()
-            );
-            return ResponseEntity.ok(transaction);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<?> addTransaction(@RequestHeader("X-User-Id") Long userId,
+                                            @RequestBody TransactionRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
+        Transaction transaction = transactionServiceImpl.addTransaction(
+                user.getName(),
+                request.getAmount(),
+                request.getType(),
+                request.getDescription());
+        return ResponseEntity.ok(transaction);
     }
 
     @GetMapping("/transactions/{userName}")
@@ -60,11 +66,15 @@ public class BudgetController {
         if (idToken == null || idToken.isEmpty()) {
             return ResponseEntity.badRequest().body(new ResponseModel("error", 0));
         }
+        System.out.println("Received token: " + idToken);
+        System.out.println("Token length: " + idToken.length());
 
         try {
             ResponseModel response = userAuthService.authenticateWithGoogle(idToken);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            System.out.println("Error during Google authentication: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(500).body(new ResponseModel("error", 0));
         }
     }
